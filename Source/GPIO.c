@@ -1,6 +1,8 @@
 
 #include "GPIO.h"
 
+
+
 void writeGPIO(uint32_t portBase, uint8_t pin, bool state)
 {
     if (pin > PIN7 || !enableGPIOClock(portBase))
@@ -30,7 +32,24 @@ bool readGPIO(uint32_t portBase, uint8_t pin)
     volatile uint32_t* dataRegister = (volatile uint32_t*)(portBase + DATA_REGISTER_OFFSET);
     return ((*dataRegister & (1 << pin)) != 0);
 }
+      // Toggle //
+void toggleGPIO(uint32_t portBase, uint8_t pin)
+{
+    /*if (pin > PIN7 || !enableGPIOClock(portBase))
+        {
+            return;
+        }*/
+    volatile uint32_t* dataRegister = (volatile uint32_t*)(portBase + DATA_REGISTER_OFFSET);
+        *dataRegister ^= (1 << pin);
 
+}
+
+void delayMs(int n)
+{
+    int i, j;
+    for(i = 0; i < n; i++)
+        for(j = 0; j < 3180; j++) {}  // Delay loop for 1 ms
+}
 void setGPIO_Direction(uint32_t portBase, uint8_t pin, bool direction)
 {
     if (pin > PIN7 || !enableGPIOClock(portBase))
@@ -69,6 +88,9 @@ bool enableGPIOClock(uint32_t portBase)
     uint16_t portNum = getPortNum(portBase);
     if (portNum != PORT_INVALID)
     {
+#ifdef GPIO_AHB
+        GPIO_AHB_ENABLE_R |=portNum;
+#endif
         GPIO_CLK_R |= portNum;
         return true;
     }
